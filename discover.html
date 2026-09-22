@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CloudLM – Music Player: The community music for everyone.</title>
+
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
+  <meta name="theme-color" content="#0e0e0e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CloudLM">
+
+  <!-- Nen WebGL (Neat) tai tu unpkg, nhac stream tu Cloudinary.
+       Bat tay TLS truoc de bot do tre khi mo fullscreen / phat bai dau tien. -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+  <link rel="dns-prefetch" href="https://res.cloudinary.com">
+
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body data-screen="home">
+  <nav id="sidebar">
+    <div class="sb-logo">
+      <img src="/favicon.png" alt="CloudLM">
+    </div>
+    <div class="sb-nav">
+      <button class="nav-btn active" data-nav="home" data-tip="Trang chủ" aria-label="Trang chủ" type="button">
+        <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      </button>
+      <button class="nav-btn" data-nav="search" data-tip="Tìm kiếm" aria-label="Tìm kiếm" type="button">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-btn" data-nav="playlists" data-tip="Playlist &amp; Nghệ sĩ" aria-label="Playlist và Nghệ sĩ" type="button">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div id="appMain">
+    <!-- Trang chu -->
+    <main class="screen active" id="screenHome">
+      <div class="s-inner">
+        <h1 class="page-title">Xin chào 👋</h1>
+        <section class="home-section">
+          <p class="section-label">Hoạt động gần đây</p>
+          <div class="tracks-row" id="recentList"></div>
+        </section>
+        <section class="home-section">
+          <p class="section-label">Gợi ý cho bạn</p>
+          <div class="pl-grid" id="suggestList"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Tim kiem -->
+    <main class="screen" id="screenSearch">
+      <div class="s-inner">
+        <div class="search-sticky">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" id="searchInput" placeholder="Tìm bài hát hoặc playlist…" autocomplete="off" spellcheck="false">
+            <button id="searchClear" aria-label="Xóa" type="button">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="searchResults"></div>
+      </div>
+    </main>
+
+    <!-- Danh sach playlist -->
+    <main class="screen" id="screenPlaylists">
+      <div class="s-inner">
+        <h1 class="page-title">Playlist &amp; Nghệ sĩ</h1>
+        <div class="pl-grid" id="allPlaylistsGrid"></div>
+      </div>
+    </main>
+
+    <!-- Chi tiet playlist -->
+    <main class="screen" id="screenPlaylistDetail">
+      <div class="s-inner">
+        <button class="back-btn" id="detailBackBtn" type="button">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Quay lại
+        </button>
+        <div class="detail-header">
+          <img class="detail-cover-img" id="detailCover" alt="">
+          <div class="detail-meta">
+            <h2 id="detailTitle"></h2>
+            <p class="detail-sub" id="detailCount"></p>
+          </div>
+        </div>
+        <button class="play-all-btn" id="playAllBtn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Phát tất cả
+        </button>
+        <div class="track-list" id="detailTrackList"></div>
+      </div>
+    </main>
+  </div><!-- /#appMain -->
+
+  <!-- Mini player -->
+  <div id="miniPlayer" role="region" aria-label="Đang phát">
+    <div class="mp-left" id="mpLeft" role="button" tabindex="0" aria-label="Mở trình phát">
+      <img class="mp-art" id="mpArt" src="" alt="">
+      <div class="mp-info">
+        <span class="mp-title" id="mpTitle">—</span>
+        <span class="mp-artist" id="mpArtist">—</span>
+      </div>
+    </div>
+    <div class="mp-controls">
+      <button class="mp-btn" id="mpPrev" aria-label="Bài trước" type="button">
+        <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+      </button>
+      <button class="mp-btn" id="mpPlayPause" aria-label="Phát / Tạm dừng" type="button">
+        <svg id="mp-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="mp-pause-icon" viewBox="0 0 24 24" style="display:none" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button class="mp-btn" id="mpNext" aria-label="Bài tiếp theo" type="button">
+        <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </button>
+    </div>
+    <div class="mp-right">
+      <button id="mpExpand" aria-label="Mở toàn màn hình" type="button">
+        <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Trinh phat toan man hinh -->
+  <div id="screenFullscreen">
+    <div class="aurora-bg" id="auroraBg">
+      <canvas id="neatCanvas"></canvas>
+      <div class="aurora-blob blob-1"></div>
+      <div class="aurora-blob blob-2"></div>
+      <div class="aurora-blob blob-3"></div>
+      <div class="aurora-blob blob-4"></div>
+      <div class="aurora-blob blob-5"></div>
+    </div>
+
+    <button class="fp-collapse" id="fpCollapse" aria-label="Thu nhỏ" type="button">
+      <svg viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    </button>
+
+    <div class="fp-content-row" id="fpContentRow">
+      <div class="lyrics-panel" id="lyricsPanel">
+        <div class="lyrics-list" id="lyricsList"></div>
+      </div>
+
+      <div class="fp-player" id="player-container">
+        <div class="album-art-wrapper">
+          <img class="album-art" id="discArt" alt="Ảnh bìa bài hát" crossorigin="anonymous">
+        </div>
+        <div class="track-info">
+          <p class="fp-title" id="trackTitle">—</p>
+          <p class="fp-artist" id="trackArtist">Cosmie</p>
+        </div>
+        <div class="progress-container">
+          <span id="currentTime">0:00</span>
+          <input type="range" class="progress-slider" id="progressSlider" min="0" value="0" step="1" aria-label="Vị trí phát">
+          <span id="durationTime">0:00</span>
+        </div>
+        <div class="controls-row">
+          <button class="icon-btn" id="prevBtn" aria-label="Bài trước" type="button">
+            <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+          </button>
+          <button class="play-btn" id="playPauseBtn" aria-label="Phát / Tạm dừng" type="button">
+            <svg id="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pause-icon" viewBox="0 0 24 24" style="display:none" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="icon-btn" id="nextBtn" aria-label="Bài tiếp theo" type="button">
+            <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <button class="icon-btn fp-lyrics-toggle" id="lyricsToggleBtn" aria-label="Lời bài hát" aria-pressed="false" type="button" style="display:none">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h11"/><path d="M4 18h16"/></svg>
+          </button>
+        </div>
+        <div class="volume-row">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" aria-label="Âm lượng">
+          <button class="loop-btn" id="loopBtn" aria-label="Lặp lại" aria-pressed="false" type="button">
+            <svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="bgMusic"></audio>
+  <canvas id="colorExtractCanvas" width="48" height="48" style="display:none"></canvas>
+
+  <script src="/js/app.js" defer></script>
+</body>
+
+</html>

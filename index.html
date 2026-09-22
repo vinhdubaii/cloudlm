@@ -4,198 +4,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Cloudreso – Music Player: The community music for everyone.</title>
+  <title>CloudLM – Đăng nhập</title>
 
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-192.png">
 
-  <meta name="theme-color" content="#0e0e0e">
+  <meta name="theme-color" content="#0b0613">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Cloudreso">
+  <meta name="apple-mobile-web-app-title" content="CloudLM">
 
-  <!-- Nen WebGL (Neat) tai tu unpkg, nhac stream tu Cloudinary.
-       Bat tay TLS truoc de bot do tre khi mo fullscreen / phat bai dau tien. -->
-  <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="dns-prefetch" href="https://unpkg.com">
-  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
-  <link rel="dns-prefetch" href="https://res.cloudinary.com">
+  <link rel="preconnect" href="https://pxpijosyqijtsvfvrnbx.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://pxpijosyqijtsvfvrnbx.supabase.co">
 
-  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    :root {
+      --bg: #0b0613;
+      --text: #ffffff;
+      --text-dim: rgba(255, 255, 255, .55);
+      --blob-1: #8b1e6e;
+      --blob-2: #5b2a9e;
+      --blob-3: #2e1f5e;
+      --blob-4: #c2348a;
+      --blob-5: #1c1530;
+    }
+
+    @property --blob-1 { syntax: '<color>'; inherits: true; initial-value: #8b1e6e }
+    @property --blob-2 { syntax: '<color>'; inherits: true; initial-value: #5b2a9e }
+    @property --blob-3 { syntax: '<color>'; inherits: true; initial-value: #2e1f5e }
+    @property --blob-4 { syntax: '<color>'; inherits: true; initial-value: #c2348a }
+    @property --blob-5 { syntax: '<color>'; inherits: true; initial-value: #1c1530 }
+
+    *, ::after, ::before { box-sizing: border-box; margin: 0; padding: 0 }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .aurora-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .aurora-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, .55) 100%);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(110px);
+      opacity: .75;
+      will-change: transform;
+      mix-blend-mode: screen;
+    }
+
+    .blob-1 { width: 65vw; height: 65vw; max-width: 880px; max-height: 880px; top: -10%; left: -10%; background: radial-gradient(circle, var(--blob-1) 0, transparent 70%); animation: drift-1 13s ease-in-out infinite }
+    .blob-2 { width: 60vw; height: 60vw; max-width: 820px; max-height: 820px; top: 10%; right: -15%; background: radial-gradient(circle, var(--blob-2) 0, transparent 70%); animation: drift-2 16s ease-in-out infinite }
+    .blob-3 { width: 55vw; height: 55vw; max-width: 760px; max-height: 760px; bottom: -15%; left: 15%; background: radial-gradient(circle, var(--blob-3) 0, transparent 70%); animation: drift-3 18s ease-in-out infinite }
+    .blob-4 { width: 48vw; height: 48vw; max-width: 660px; max-height: 660px; bottom: -10%; right: 5%; background: radial-gradient(circle, var(--blob-4) 0, transparent 70%); opacity: .55; animation: drift-4 14.5s ease-in-out infinite }
+    .blob-5 { width: 40vw; height: 40vw; max-width: 560px; max-height: 560px; top: 38%; left: 38%; background: radial-gradient(circle, var(--blob-5) 0, transparent 70%); opacity: .6; animation: drift-5 11s ease-in-out infinite }
+
+    @keyframes drift-1 { 0%{transform:translate(0,0) scale(1) rotate(0)} 22%{transform:translate(22%,14%) scale(1.25) rotate(8deg)} 41%{transform:translate(10%,30%) scale(.95) rotate(-6deg)} 63%{transform:translate(-16%,18%) scale(1.18) rotate(10deg)} 81%{transform:translate(-8%,-10%) scale(1.05) rotate(-4deg)} 100%{transform:translate(0,0) scale(1) rotate(0)} }
+    @keyframes drift-2 { 0%{transform:translate(0,0) scale(1) rotate(0)} 19%{transform:translate(-20%,16%) scale(1.2) rotate(-10deg)} 38%{transform:translate(-30%,-8%) scale(.92) rotate(6deg)} 57%{transform:translate(-12%,-24%) scale(1.22) rotate(-8deg)} 79%{transform:translate(8%,-6%) scale(1.05) rotate(5deg)} 100%{transform:translate(0,0) scale(1) rotate(0)} }
+    @keyframes drift-3 { 0%{transform:translate(0,0) scale(1) rotate(0)} 24%{transform:translate(18%,-22%) scale(1.28) rotate(9deg)} 46%{transform:translate(32%,-6%) scale(.9) rotate(-7deg)} 68%{transform:translate(14%,14%) scale(1.15) rotate(11deg)} 85%{transform:translate(-10%,6%) scale(1.05) rotate(-5deg)} 100%{transform:translate(0,0) scale(1) rotate(0)} }
+    @keyframes drift-4 { 0%{transform:translate(0,0) scale(1) rotate(0)} 27%{transform:translate(-22%,-18%) scale(1.22) rotate(-9deg)} 49%{transform:translate(-8%,-32%) scale(.93) rotate(7deg)} 70%{transform:translate(16%,-14%) scale(1.2) rotate(-10deg)} 88%{transform:translate(10%,8%) scale(1.04) rotate(4deg)} 100%{transform:translate(0,0) scale(1) rotate(0)} }
+    @keyframes drift-5 { 0%{transform:translate(-50%,-50%) scale(1) rotate(0)} 21%{transform:translate(-65%,-30%) scale(1.3) rotate(12deg)} 44%{transform:translate(-35%,-62%) scale(.88) rotate(-9deg)} 66%{transform:translate(-60%,-65%) scale(1.2) rotate(8deg)} 85%{transform:translate(-42%,-38%) scale(1.06) rotate(-6deg)} 100%{transform:translate(-50%,-50%) scale(1) rotate(0)} }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aurora-blob { animation: none !important }
+    }
+
+    .login-wrap {
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .login-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .4);
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 8px;
+    }
+
+    .login-sub {
+      color: var(--text-dim);
+      font-size: 15px;
+      margin-bottom: 40px;
+      max-width: 360px;
+    }
+
+    .google-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      color: #1f1f1f;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .3);
+    }
+
+    .google-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0, 0, 0, .4) }
+    .google-btn:active { transform: translateY(0) }
+    .google-btn:disabled { opacity: .6; cursor: default; transform: none }
+
+    .google-btn svg { width: 20px; height: 20px; flex-shrink: 0 }
+
+    .login-status {
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-dim);
+      min-height: 18px;
+    }
+
+    .login-status.error { color: #f28b8b }
+  </style>
 </head>
 
-<body data-screen="home">
-  <nav id="sidebar">
-    <div class="sb-logo">
-      <img src="/favicon.png" alt="Cloudreso">
-    </div>
-    <div class="sb-nav">
-      <button class="nav-btn active" data-nav="home" data-tip="Trang chủ" aria-label="Trang chủ" type="button">
-        <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
-      </button>
-      <button class="nav-btn" data-nav="search" data-tip="Tìm kiếm" aria-label="Tìm kiếm" type="button">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      </button>
-      <button class="nav-btn" data-nav="playlists" data-tip="Playlist &amp; Nghệ sĩ" aria-label="Playlist và Nghệ sĩ" type="button">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      </button>
-    </div>
-  </nav>
-
-  <div id="appMain">
-    <!-- Trang chu -->
-    <main class="screen active" id="screenHome">
-      <div class="s-inner">
-        <h1 class="page-title">Xin chào 👋</h1>
-        <section class="home-section">
-          <p class="section-label">Hoạt động gần đây</p>
-          <div class="tracks-row" id="recentList"></div>
-        </section>
-        <section class="home-section">
-          <p class="section-label">Gợi ý cho bạn</p>
-          <div class="pl-grid" id="suggestList"></div>
-        </section>
-      </div>
-    </main>
-
-    <!-- Tim kiem -->
-    <main class="screen" id="screenSearch">
-      <div class="s-inner">
-        <div class="search-sticky">
-          <div class="search-box">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input type="search" id="searchInput" placeholder="Tìm bài hát hoặc playlist…" autocomplete="off" spellcheck="false">
-            <button id="searchClear" aria-label="Xóa" type="button">
-              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-        </div>
-        <div id="searchResults"></div>
-      </div>
-    </main>
-
-    <!-- Danh sach playlist -->
-    <main class="screen" id="screenPlaylists">
-      <div class="s-inner">
-        <h1 class="page-title">Playlist &amp; Nghệ sĩ</h1>
-        <div class="pl-grid" id="allPlaylistsGrid"></div>
-      </div>
-    </main>
-
-    <!-- Chi tiet playlist -->
-    <main class="screen" id="screenPlaylistDetail">
-      <div class="s-inner">
-        <button class="back-btn" id="detailBackBtn" type="button">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Quay lại
-        </button>
-        <div class="detail-header">
-          <img class="detail-cover-img" id="detailCover" alt="">
-          <div class="detail-meta">
-            <h2 id="detailTitle"></h2>
-            <p class="detail-sub" id="detailCount"></p>
-          </div>
-        </div>
-        <button class="play-all-btn" id="playAllBtn" type="button">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Phát tất cả
-        </button>
-        <div class="track-list" id="detailTrackList"></div>
-      </div>
-    </main>
-  </div><!-- /#appMain -->
-
-  <!-- Mini player -->
-  <div id="miniPlayer" role="region" aria-label="Đang phát">
-    <div class="mp-left" id="mpLeft" role="button" tabindex="0" aria-label="Mở trình phát">
-      <img class="mp-art" id="mpArt" src="" alt="">
-      <div class="mp-info">
-        <span class="mp-title" id="mpTitle">—</span>
-        <span class="mp-artist" id="mpArtist">—</span>
-      </div>
-    </div>
-    <div class="mp-controls">
-      <button class="mp-btn" id="mpPrev" aria-label="Bài trước" type="button">
-        <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
-      </button>
-      <button class="mp-btn" id="mpPlayPause" aria-label="Phát / Tạm dừng" type="button">
-        <svg id="mp-play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        <svg id="mp-pause-icon" viewBox="0 0 24 24" style="display:none" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-      </button>
-      <button class="mp-btn" id="mpNext" aria-label="Bài tiếp theo" type="button">
-        <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-      </button>
-    </div>
-    <div class="mp-right">
-      <button id="mpExpand" aria-label="Mở toàn màn hình" type="button">
-        <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-      </button>
-    </div>
+<body>
+  <div class="aurora-bg">
+    <div class="aurora-blob blob-1"></div>
+    <div class="aurora-blob blob-2"></div>
+    <div class="aurora-blob blob-3"></div>
+    <div class="aurora-blob blob-4"></div>
+    <div class="aurora-blob blob-5"></div>
   </div>
 
-  <!-- Trinh phat toan man hinh -->
-  <div id="screenFullscreen">
-    <div class="aurora-bg" id="auroraBg">
-      <canvas id="neatCanvas"></canvas>
-      <div class="aurora-blob blob-1"></div>
-      <div class="aurora-blob blob-2"></div>
-      <div class="aurora-blob blob-3"></div>
-      <div class="aurora-blob blob-4"></div>
-      <div class="aurora-blob blob-5"></div>
-    </div>
+  <div class="login-wrap">
+    <img class="login-logo" src="/favicon.png" alt="CloudLM">
+    <h1 class="login-title">CloudLM</h1>
+    <p class="login-sub">The community music for everyone. Đăng nhập bằng Google để bắt đầu nghe nhạc.</p>
 
-    <button class="fp-collapse" id="fpCollapse" aria-label="Thu nhỏ" type="button">
-      <svg viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    <button class="google-btn" id="googleBtn" type="button">
+      <svg viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.82z"/>
+        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.88-3c-1.08.72-2.45 1.15-4.05 1.15-3.11 0-5.75-2.1-6.69-4.92H1.3v3.09A11.998 11.998 0 0 0 12 24z"/>
+        <path fill="#FBBC05" d="M5.31 14.32A7.2 7.2 0 0 1 4.93 12c0-.8.14-1.58.38-2.32V6.59H1.3A12 12 0 0 0 0 12c0 1.94.46 3.77 1.3 5.41l4.01-3.09z"/>
+        <path fill="#EA4335" d="M12 4.75c1.76 0 3.35.6 4.6 1.79l3.44-3.44C17.94 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.3 6.59l4.01 3.09C6.25 6.85 8.89 4.75 12 4.75z"/>
+      </svg>
+      Đăng nhập với Google
     </button>
 
-    <div class="fp-content-row" id="fpContentRow">
-      <div class="lyrics-panel" id="lyricsPanel">
-        <div class="lyrics-list" id="lyricsList"></div>
-      </div>
-
-      <div class="fp-player" id="player-container">
-        <div class="album-art-wrapper">
-          <img class="album-art" id="discArt" alt="Ảnh bìa bài hát" crossorigin="anonymous">
-        </div>
-        <div class="track-info">
-          <p class="fp-title" id="trackTitle">—</p>
-          <p class="fp-artist" id="trackArtist">Cosmie</p>
-        </div>
-        <div class="progress-container">
-          <span id="currentTime">0:00</span>
-          <input type="range" class="progress-slider" id="progressSlider" min="0" value="0" step="1" aria-label="Vị trí phát">
-          <span id="durationTime">0:00</span>
-        </div>
-        <div class="controls-row">
-          <button class="icon-btn" id="prevBtn" aria-label="Bài trước" type="button">
-            <svg viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
-          </button>
-          <button class="play-btn" id="playPauseBtn" aria-label="Phát / Tạm dừng" type="button">
-            <svg id="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="pause-icon" viewBox="0 0 24 24" style="display:none" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-          </button>
-          <button class="icon-btn" id="nextBtn" aria-label="Bài tiếp theo" type="button">
-            <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-          </button>
-          <button class="icon-btn fp-lyrics-toggle" id="lyricsToggleBtn" aria-label="Lời bài hát" aria-pressed="false" type="button" style="display:none">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h11"/><path d="M4 18h16"/></svg>
-          </button>
-        </div>
-        <div class="volume-row">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" aria-label="Âm lượng">
-          <button class="loop-btn" id="loopBtn" aria-label="Lặp lại" aria-pressed="false" type="button">
-            <svg viewBox="0 0 24 24"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-          </button>
-        </div>
-      </div>
-    </div>
+    <p class="login-status" id="loginStatus"></p>
   </div>
 
-  <audio id="bgMusic"></audio>
-  <canvas id="colorExtractCanvas" width="48" height="48" style="display:none"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://pxpijosyqijtsvfvrnbx.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_i1prms5Yn6XQy2cwYI9P4Q_H-xhK_dt";
+    const DISCOVER_PATH = "/discover";
 
-  <script src="/js/app.js" defer></script>
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const googleBtn = document.getElementById("googleBtn");
+    const statusEl = document.getElementById("loginStatus");
+
+    function setStatus(msg, isError) {
+      statusEl.textContent = msg || "";
+      statusEl.classList.toggle("error", !!isError);
+    }
+
+    // Neu da co session hop le roi thi khong can dang nhap lai, chuyen thang.
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) return;
+      if (data.session) {
+        window.location.replace(DISCOVER_PATH);
+      }
+    });
+
+    googleBtn.addEventListener("click", async () => {
+      googleBtn.disabled = true;
+      setStatus("Đang chuyển tới Google…");
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin + DISCOVER_PATH
+        }
+      });
+
+      if (error) {
+        setStatus("Đăng nhập thất bại: " + error.message, true);
+        googleBtn.disabled = false;
+      }
+      // Thanh cong thi trinh duyet se tu redirect sang Google roi quay ve
+      // DISCOVER_PATH, khong can lam gi them o day.
+    });
+  </script>
 </body>
 
 </html>
