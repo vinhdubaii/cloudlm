@@ -189,7 +189,7 @@
     const SUPABASE_ANON_KEY = "sb_publishable_i1prms5Yn6XQy2cwYI9P4Q_H-xhK_dt";
     const DISCOVER_PATH = "/discover";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const googleBtn = document.getElementById("googleBtn");
     const statusEl = document.getElementById("loginStatus");
@@ -200,7 +200,7 @@
     }
 
     // Neu da co session hop le roi thi khong can dang nhap lai, chuyen thang.
-    supabase.auth.getSession().then(({ data, error }) => {
+    supabaseClient.auth.getSession().then(({ data, error }) => {
       if (error) return;
       if (data.session) {
         window.location.replace(DISCOVER_PATH);
@@ -211,7 +211,7 @@
       googleBtn.disabled = true;
       setStatus("Đang chuyển tới Google…");
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: window.location.origin + DISCOVER_PATH
