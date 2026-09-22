@@ -1,4 +1,4 @@
-# Cloudreso – Music Player
+# CloudLM – Music Player
 
 Trình phát nhạc web (PWA), chạy hoàn toàn tĩnh — không cần backend.
 Nhạc stream từ Cloudinary, ảnh bìa và lời bài hát nằm ngay trong repo.

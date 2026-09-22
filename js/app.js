@@ -1,5 +1,5 @@
 /* =====================================================================
- * Cloudreso – Music Player
+ * CloudLM – Music Player
  * Tach ra tu index.html. Cac ten bien 1 ky tu (e, t, n...) la di san
  * cua ban minify cu, dat lai dan khi dung toi tung phan.
  *
