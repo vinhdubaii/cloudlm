@@ -15,6 +15,11 @@
  *   9. Dang ky service worker
  * ===================================================================== */
 
+import { supabaseClient } from "/js/auth.js";
+
+// File .lrc van nam trong repo GitHub, lay qua jsDelivr thay vi path local.
+const LYRICS_BASE = "https://cdn.jsdelivr.net/gh/vinhdubaii/cloudreso@main/";
+
 /* ---------------------------------------------------------------------
  * 1. DOM refs & state
  * ------------------------------------------------------------------ */
@@ -68,8 +73,7 @@ const audio = document.getElementById("bgMusic"),
     mpExpand = document.getElementById("mpExpand"),
     mpLeft = document.getElementById("mpLeft"),
     mpPlayIcon = document.getElementById("mp-play-icon"),
-    mpPauseIcon = document.getElementById("mp-pause-icon"),
-    DATA_INDEX_URL = "data/playlists_index.json";
+    mpPauseIcon = document.getElementById("mp-pause-icon");
 let allPlaylists = [],
     dataState = "loading",
     currentPlaylistId = null,
@@ -414,9 +418,8 @@ function playPrev() {
 }
 /* ---------------------------------------------------------------------
  * 5. Lyrics (.lrc)
- * Duong dan .lrc suy ra tu duong dan anh bia:
- *   img/madihu/co-em.webp  ->  data/lyrics/madihu/co-em.lrc
- * Vi vay ten file anh va ten file lyrics phai trung nhau.
+ * Duong dan .lrc lay tu cot lyrics_path trong Supabase (tracks.lyrics_path),
+ * ghep voi LYRICS_BASE (jsDelivr) de tai truc tiep tu repo GitHub.
  * ------------------------------------------------------------------ */
 const lyricsToggleBtn = document.getElementById("lyricsToggleBtn"),
     lyricsPanel = document.getElementById("lyricsPanel"),
@@ -427,7 +430,7 @@ let currentLyrics = [],
     lyricsOpen = !1;
 
 function lrcPathFor(e) {
-    return e && e.art ? e.art.replace(/^img\//, "data/lyrics/").replace(/\.[a-zA-Z0-9]+$/, ".lrc") : null
+    return e && e.lyricsPath ? LYRICS_BASE + e.lyricsPath : null
 }
 
 function parseLRC(e) {
@@ -644,14 +647,46 @@ function shuffle(e) {
  * ------------------------------------------------------------------ */
 async function loadAllPlaylists() {
     try {
-        const e = await fetch(DATA_INDEX_URL);
-        if (!e.ok) throw new Error("index missing");
-        const t = await e.json();
-        allPlaylists = await Promise.all(t.map((async e => {
-            const t = await fetch(`data/${e.file}`);
-            if (!t.ok) throw new Error(`missing ${e.file}`);
-            return t.json()
-        }))), dataState = "ready"
+        const { data, error } = await supabaseClient
+            .from("playlists")
+            .select(`
+                id, title, cover_url,
+                playlist_tracks (
+                    position,
+                    tracks (
+                        id, title, audio_url, art_url, lyrics_path,
+                        track_artists ( role, artists ( name ) )
+                    )
+                )
+            `)
+            .order("sort_order");
+
+        if (error) throw error;
+
+        allPlaylists = (data || []).map((pl) => ({
+            id: pl.id,
+            title: pl.title,
+            cover: pl.cover_url,
+            tracks: (pl.playlist_tracks || [])
+                .slice()
+                .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+                .filter((pt) => pt.tracks)
+                .map((pt) => {
+                    const tr = pt.tracks;
+                    const mains = (tr.track_artists || []).filter((ta) => ta.role !== "feat").map((ta) => ta.artists?.name).filter(Boolean);
+                    const feats = (tr.track_artists || []).filter((ta) => ta.role === "feat").map((ta) => ta.artists?.name).filter(Boolean);
+                    let artist = mains.join(", ");
+                    if (feats.length) artist += (artist ? " ft. " : "") + feats.join(", ");
+                    return {
+                        title: tr.title,
+                        artist: artist || undefined,
+                        art: tr.art_url,
+                        src: tr.audio_url,
+                        lyricsPath: tr.lyrics_path
+                    };
+                })
+        }));
+        dataState = "ready";
     } catch (e) {
         console.error("Lỗi nạp playlist:", e), dataState = "error"
     }
@@ -737,15 +772,15 @@ function renderRecent() {
 
 function renderSuggestions() {
     if ("loading" === dataState) return void(suggestListEl.innerHTML = '<p class="state-msg">Đang tải…</p>');
-    if ("error" === dataState) return void(suggestListEl.innerHTML = '<p class="state-msg">Không tải được playlist. Hãy chạy qua local server (VSCode Live Server) rồi thử lại.</p>');
-    if (!allPlaylists.length) return void(suggestListEl.innerHTML = '<p class="state-msg">Chưa có playlist nào trong data/.</p>');
+    if ("error" === dataState) return void(suggestListEl.innerHTML = '<p class="state-msg">Không tải được playlist. Kiểm tra kết nối mạng rồi thử lại.</p>');
+    if (!allPlaylists.length) return void(suggestListEl.innerHTML = '<p class="state-msg">Chưa có playlist nào. Hãy thêm qua trang quản trị.</p>');
     const e = new Set(getRecent().map((e => e.playlistId)));
     let t = allPlaylists.filter((t => !e.has(t.id)));
     t.length || (t = allPlaylists.slice()), suggestListEl.innerHTML = "", shuffle(t).slice(0, 4).forEach((e => suggestListEl.appendChild(mkPlCard(e))))
 }
 
 function renderPlaylistsGrid() {
-    "loading" !== dataState ? "error" !== dataState ? allPlaylists.length ? (allPlaylistsGrid.innerHTML = "", allPlaylists.forEach((e => allPlaylistsGrid.appendChild(mkPlCard(e))))) : allPlaylistsGrid.innerHTML = '<p class="state-msg">Chưa có playlist nào.</p>' : allPlaylistsGrid.innerHTML = '<p class="state-msg">Không tải được playlist. Hãy chạy qua local server (VSCode Live Server) rồi thử lại.</p>' : allPlaylistsGrid.innerHTML = '<p class="state-msg">Đang tải…</p>'
+    "loading" !== dataState ? "error" !== dataState ? allPlaylists.length ? (allPlaylistsGrid.innerHTML = "", allPlaylists.forEach((e => allPlaylistsGrid.appendChild(mkPlCard(e))))) : allPlaylistsGrid.innerHTML = '<p class="state-msg">Chưa có playlist nào.</p>' : allPlaylistsGrid.innerHTML = '<p class="state-msg">Không tải được playlist. Kiểm tra kết nối mạng rồi thử lại.</p>' : allPlaylistsGrid.innerHTML = '<p class="state-msg">Đang tải…</p>'
 }
 
 function mkPlCard(e) {
