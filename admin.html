@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CloudLM – Quản trị</title>
+
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="theme-color" content="#0b0613">
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="preconnect" href="https://pxpijosyqijtsvfvrnbx.supabase.co" crossorigin>
+
+  <!-- Chan hien noi dung cho toi khi auth gate xac nhan la admin. -->
+  <style>html:not(.auth-ok) body { visibility: hidden }</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #0b0613;
+      --surface: #150f20;
+      --surface-2: #1d1530;
+      --border: rgba(255, 255, 255, .08);
+      --text: #fff;
+      --text-dim: rgba(255, 255, 255, .55);
+      --text-faint: rgba(255, 255, 255, .32);
+      --accent: #d4429a;
+      --accent-hover: #e356ac;
+      --accent-2: #6b3bb0;
+      --danger: #e05a68;
+      --danger-hover: #ea6c79;
+      --success: #3fc98a;
+      --radius: 10px;
+    }
+
+    * , ::before, ::after { box-sizing: border-box }
+    html, body { margin: 0; padding: 0 }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent) }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ---------- Sidebar ---------- */
+
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px 22px;
+    }
+
+    .brand img { width: 28px; height: 28px; border-radius: 8px }
+    .brand span { font-weight: 700; font-size: 16px }
+
+    .nav-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font: inherit;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
+
+    .nav-btn:hover { background: var(--surface-2); color: var(--text) }
+    .nav-btn.active { background: var(--surface-2); color: var(--text); font-weight: 600 }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .who-am-i {
+      font-size: 12px;
+      color: var(--text-faint);
+      padding: 0 12px 10px;
+      word-break: break-all;
+    }
+
+    .signout-btn {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font: inherit;
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .signout-btn:hover { border-color: var(--danger); color: var(--danger) }
+
+    /* ---------- Main content ---------- */
+
+    .content { padding: 28px 32px 60px; max-width: 1180px }
+
+    .panel { display: none }
+    .panel.active { display: block }
+
+    .panel-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h1 { font-size: 20px; margin: 0 }
+    .panel-head p { color: var(--text-dim); margin: 4px 0 0; font-size: 13px }
+
+    .layout-2col {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 880px) {
+      .app-shell { grid-template-columns: 1fr }
+      .sidebar { position: static; height: auto; flex-direction: row; overflow-x: auto }
+      .sidebar-footer { display: none }
+      .layout-2col { grid-template-columns: 1fr }
+    }
+
+    /* ---------- Cards / lists ---------- */
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .card h2 { font-size: 14px; margin: 0 0 12px; color: var(--text-dim); font-weight: 600 }
+
+    .row-list { display: flex; flex-direction: column; gap: 6px }
+
+    .row-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .row-item:hover { background: var(--surface-2) }
+    .row-item.editing { border-color: var(--accent); background: var(--surface-2) }
+
+    .row-thumb {
+      width: 34px; height: 34px; border-radius: 6px;
+      background: var(--surface-2);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .row-main { flex: 1; min-width: 0 }
+    .row-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .row-sub { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+
+    .row-del {
+      background: none; border: none; color: var(--text-faint);
+      cursor: pointer; padding: 6px; border-radius: 6px; font-size: 15px; line-height: 1;
+    }
+    .row-del:hover { color: var(--danger); background: rgba(224, 90, 104, .12) }
+
+    .empty-note { color: var(--text-faint); font-size: 13px; padding: 8px 4px }
+
+    /* ---------- Forms ---------- */
+
+    .field { margin-bottom: 12px }
+    .field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px }
+
+    .field input[type="text"],
+    .field input[type="url"],
+    .field input[type="number"],
+    .field textarea,
+    .field select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font: inherit;
+      padding: 9px 10px;
+      border-radius: 8px;
+    }
+
+    .field textarea { resize: vertical; min-height: 70px; font-family: inherit }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+
+    .checklist {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 6px;
+      border-radius: 6px;
+    }
+
+    .checklist-item:hover { background: var(--surface-2) }
+    .checklist-item label { margin: 0; flex: 1; font-size: 13px; color: var(--text); cursor: pointer }
+    .checklist-item select, .checklist-item input[type="number"] { width: 84px; padding: 5px 6px; font-size: 12px }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary { background: var(--accent); color: #fff }
+    .btn-primary:hover { background: var(--accent-hover) }
+    .btn-primary:disabled { opacity: .5; cursor: default }
+
+    .btn-ghost { background: none; border: 1px solid var(--border); color: var(--text-dim) }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text-dim) }
+
+    .form-actions { display: flex; gap: 8px; margin-top: 16px }
+
+    /* ---------- Toast ---------- */
+
+    #toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 11px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 50;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0) }
+    #toast.error { border-color: var(--danger); color: #ffd6da }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="/favicon.png" alt="">
+        <span>CloudLM</span>
+      </div>
+
+      <nav>
+        <button class="nav-btn active" data-tab="playlists">Playlist</button>
+        <button class="nav-btn" data-tab="tracks">Bài hát</button>
+        <button class="nav-btn" data-tab="artists">Nghệ sĩ</button>
+        <button class="nav-btn" data-tab="admins">Quản trị viên</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="who-am-i" id="whoAmI"></div>
+        <button class="signout-btn" id="signOutBtn">Đăng xuất</button>
+      </div>
+    </aside>
+
+    <main class="content">
+
+      <!-- ============ PLAYLISTS ============ -->
+      <section class="panel active" id="panel-playlists">
+        <div class="panel-head">
+          <div>
+            <h1>Playlist</h1>
+            <p>Tạo playlist và chọn bài hát thuộc playlist đó.</p>
+          </div>
+        </div>
+        <div class="layout-2col">
+          <div class="card">
+            <h2>Danh sách playlist</h2>
+            <div class="row-list" id="playlistList"></div>
+          </div>
+          <div class="card">
+            <h2 id="playlistFormTitle">Thêm playlist mới</h2>
+            <form id="playlistForm">
+              <div class="field">
+                <label for="plTitle">Tên playlist</label>
+                <input type="text" id="plTitle" required>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="plSlug">Slug (a-z 0-9 -)</label>
+                  <input type="text" id="plSlug" pattern="[a-z0-9-]+" required>
+                </div>
+                <div class="field">
+                  <label for="plSort">Thứ tự hiển thị</label>
+                  <input type="number" id="plSort" value="0">
+                </div>
+              </div>
+              <div class="field">
+                <label for="plCover">Link ảnh bìa (Cloudinary)</label>
+                <input type="url" id="plCover" placeholder="https://res.cloudinary.com/...">
+              </div>
+              <div class="field">
+                <label>Bài hát trong playlist</label>
+                <div class="checklist" id="plTrackChecklist"></div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="plSaveBtn">Lưu playlist</button>
+                <button type="button" class="btn btn-ghost" id="plCancelBtn" hidden>Huỷ sửa</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TRACKS ============ -->
+      <section class="panel" id="panel-tracks">
+        <div class="panel-head">
+          <div>
+            <h1>Bài hát</h1>
+            <p>Thêm bài hát, dán link nhạc/ảnh từ Cloudinary, gán nghệ sĩ tham gia.</p>
+          </div>
+        </div>
+        <div class="layout-2col">
+          <div class="card">
+            <h2>Danh sách bài hát</h2>
+            <div class="row-list" id="trackList"></div>
+          </div>
+          <div class="card">
+            <h2 id="trackFormTitle">Thêm bài hát mới</h2>
+            <form id="trackForm">
+              <div class="field">
+                <label for="trTitle">Tên bài hát</label>
+                <input type="text" id="trTitle" required>
+              </div>
+              <div class="field">
+                <label for="trAudio">Link nhạc (Cloudinary)</label>
+                <input type="url" id="trAudio" placeholder="https://res.cloudinary.com/..." required>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="trArt">Link ảnh bìa (Cloudinary)</label>
+                  <input type="url" id="trArt" placeholder="https://res.cloudinary.com/...">
+                </div>
+                <div class="field">
+                  <label for="trDuration">Thời lượng (giây)</label>
+                  <input type="number" id="trDuration" min="0">
+                </div>
+              </div>
+              <div class="field">
+                <label for="trLyrics">Đường dẫn lời (.lrc trong repo)</label>
+                <input type="text" id="trLyrics" placeholder="data/lyrics/madihu/co-em.lrc">
+              </div>
+              <div class="field">
+                <label>Nghệ sĩ tham gia</label>
+                <div class="checklist" id="trArtistChecklist"></div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="trSaveBtn">Lưu bài hát</button>
+                <button type="button" class="btn btn-ghost" id="trCancelBtn" hidden>Huỷ sửa</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ARTISTS ============ -->
+      <section class="panel" id="panel-artists">
+        <div class="panel-head">
+          <div>
+            <h1>Nghệ sĩ</h1>
+            <p>Danh sách nghệ sĩ để gán vào bài hát.</p>
+          </div>
+        </div>
+        <div class="layout-2col">
+          <div class="card">
+            <h2>Danh sách nghệ sĩ</h2>
+            <div class="row-list" id="artistList"></div>
+          </div>
+          <div class="card">
+            <h2 id="artistFormTitle">Thêm nghệ sĩ mới</h2>
+            <form id="artistForm">
+              <div class="field">
+                <label for="arName">Tên nghệ sĩ</label>
+                <input type="text" id="arName" required>
+              </div>
+              <div class="field">
+                <label for="arAvatar">Link ảnh đại diện (Cloudinary)</label>
+                <input type="url" id="arAvatar" placeholder="https://res.cloudinary.com/...">
+              </div>
+              <div class="field">
+                <label for="arBio">Giới thiệu ngắn</label>
+                <textarea id="arBio"></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="arSaveBtn">Lưu nghệ sĩ</button>
+                <button type="button" class="btn btn-ghost" id="arCancelBtn" hidden>Huỷ sửa</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ADMINS ============ -->
+      <section class="panel" id="panel-admins">
+        <div class="panel-head">
+          <div>
+            <h1>Quản trị viên</h1>
+            <p>Email đăng nhập Google được liệt kê ở đây sẽ vào được trang này.</p>
+          </div>
+        </div>
+        <div class="layout-2col">
+          <div class="card">
+            <h2>Đang có quyền admin</h2>
+            <div class="row-list" id="adminList"></div>
+          </div>
+          <div class="card">
+            <h2>Thêm quản trị viên</h2>
+            <form id="adminForm">
+              <div class="field">
+                <label for="adEmails">Dán email, mỗi dòng một email</label>
+                <textarea id="adEmails" placeholder="ban1@gmail.com&#10;ban2@gmail.com" required></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Thêm quyền admin</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module">
+    import { supabaseClient, requireAdmin, signOut } from "/js/auth.js";
+
+    // ---------- Auth gate ----------
+    const session = await requireAdmin();
+    if (!session) { /* requireAdmin da tu redirect */ } 
+    else {
+      document.documentElement.classList.add("auth-ok");
+      document.getElementById("whoAmI").textContent = session.user.email;
+      init();
+    }
+
+    document.getElementById("signOutBtn").addEventListener("click", signOut);
+
+    // ---------- Tabs ----------
+    document.querySelectorAll(".nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // ---------- Toast ----------
+    let toastTimer;
+    function toast(msg, isError) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.toggle("error", !!isError);
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
+    }
+
+    // ---------- State ----------
+    let artists = [];
+    let tracks = [];
+    let playlists = [];
+    let editingArtistId = null;
+    let editingTrackId = null;
+    let editingPlaylistId = null;
+
+    async function init() {
+      await Promise.all([loadArtists(), loadTracks(), loadPlaylists(), loadAdmins()]);
+    }
+
+    // ================= ARTISTS =================
+
+    async function loadArtists() {
+      const { data, error } = await supabaseClient
+        .from("artists")
+        .select("*")
+        .order("name");
+      if (error) { toast("Lỗi tải nghệ sĩ: " + error.message, true); return; }
+      artists = data || [];
+      renderArtistList();
+      renderTrackArtistChecklist();
+    }
+
+    function renderArtistList() {
+      const box = document.getElementById("artistList");
+      box.innerHTML = "";
+      if (!artists.length) {
+        box.innerHTML = '<div class="empty-note">Chưa có nghệ sĩ nào.</div>';
+        return;
+      }
+      artists.forEach((a) => {
+        const row = document.createElement("div");
+        row.className = "row-item" + (a.id === editingArtistId ? " editing" : "");
+        row.innerHTML = `
+          <img class="row-thumb" src="${escapeAttr(a.avatar_url || '')}" onerror="this.style.visibility='hidden'">
+          <div class="row-main">
+            <div class="row-title">${escapeHtml(a.name)}</div>
+          </div>
+          <button class="row-del" title="Xoá" data-id="${a.id}">✕</button>
+        `;
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".row-del")) return;
+          startEditArtist(a);
+        });
+        row.querySelector(".row-del").addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteArtist(a.id);
+        });
+        box.appendChild(row);
+      });
+    }
+
+    function startEditArtist(a) {
+      editingArtistId = a.id;
+      document.getElementById("arName").value = a.name || "";
+      document.getElementById("arAvatar").value = a.avatar_url || "";
+      document.getElementById("arBio").value = a.bio || "";
+      document.getElementById("artistFormTitle").textContent = "Sửa nghệ sĩ";
+      document.getElementById("arSaveBtn").textContent = "Cập nhật nghệ sĩ";
+      document.getElementById("arCancelBtn").hidden = false;
+      renderArtistList();
+    }
+
+    function resetArtistForm() {
+      editingArtistId = null;
+      document.getElementById("artistForm").reset();
+      document.getElementById("artistFormTitle").textContent = "Thêm nghệ sĩ mới";
+      document.getElementById("arSaveBtn").textContent = "Lưu nghệ sĩ";
+      document.getElementById("arCancelBtn").hidden = true;
+      renderArtistList();
+    }
+
+    document.getElementById("arCancelBtn").addEventListener("click", resetArtistForm);
+
+    document.getElementById("artistForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById("arName").value.trim(),
+        avatar_url: document.getElementById("arAvatar").value.trim() || null,
+        bio: document.getElementById("arBio").value.trim() || null
+      };
+      if (editingArtistId) payload.id = editingArtistId;
+
+      const { error } = await supabaseClient.from("artists").upsert(payload);
+      if (error) { toast("Không lưu được: " + error.message, true); return; }
+      toast(editingArtistId ? "Đã cập nhật nghệ sĩ" : "Đã thêm nghệ sĩ");
+      resetArtistForm();
+      await loadArtists();
+    });
+
+    async function deleteArtist(id) {
+      if (!confirm("Xoá nghệ sĩ này? Bài hát đang gán nghệ sĩ này sẽ mất liên kết.")) return;
+      const { error } = await supabaseClient.from("artists").delete().eq("id", id);
+      if (error) { toast("Không xoá được: " + error.message, true); return; }
+      if (editingArtistId === id) resetArtistForm();
+      toast("Đã xoá nghệ sĩ");
+      await loadArtists();
+    }
+
+    // ================= TRACKS =================
+
+    async function loadTracks() {
+      const { data, error } = await supabaseClient
+        .from("tracks")
+        .select("*, track_artists(role, artists(id, name))")
+        .order("title");
+      if (error) { toast("Lỗi tải bài hát: " + error.message, true); return; }
+      tracks = data || [];
+      renderTrackList();
+      renderPlaylistTrackChecklist();
+    }
+
+    function renderTrackList() {
+      const box = document.getElementById("trackList");
+      box.innerHTML = "";
+      if (!tracks.length) {
+        box.innerHTML = '<div class="empty-note">Chưa có bài hát nào.</div>';
+        return;
+      }
+      tracks.forEach((t) => {
+        const artistNames = (t.track_artists || [])
+          .map((ta) => ta.artists?.name)
+          .filter(Boolean)
+          .join(", ");
+        const row = document.createElement("div");
+        row.className = "row-item" + (t.id === editingTrackId ? " editing" : "");
+        row.innerHTML = `
+          <img class="row-thumb" src="${escapeAttr(t.art_url || '')}" onerror="this.style.visibility='hidden'">
+          <div class="row-main">
+            <div class="row-title">${escapeHtml(t.title)}</div>
+            <div class="row-sub">${escapeHtml(artistNames || "Chưa gán nghệ sĩ")}</div>
+          </div>
+          <button class="row-del" title="Xoá" data-id="${t.id}">✕</button>
+        `;
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".row-del")) return;
+          startEditTrack(t);
+        });
+        row.querySelector(".row-del").addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteTrack(t.id);
+        });
+        box.appendChild(row);
+      });
+    }
+
+    function renderTrackArtistChecklist(selectedMap = {}) {
+      const box = document.getElementById("trArtistChecklist");
+      box.innerHTML = "";
+      if (!artists.length) {
+        box.innerHTML = '<div class="empty-note">Chưa có nghệ sĩ nào — thêm ở tab Nghệ sĩ trước.</div>';
+        return;
+      }
+      artists.forEach((a) => {
+        const checked = selectedMap[a.id];
+        const item = document.createElement("div");
+        item.className = "checklist-item";
+        item.innerHTML = `
+          <input type="checkbox" data-artist-id="${a.id}" ${checked ? "checked" : ""}>
+          <label>${escapeHtml(a.name)}</label>
+          <select data-role-for="${a.id}">
+            <option value="main" ${checked?.role === "main" || !checked ? "selected" : ""}>Chính</option>
+            <option value="feat" ${checked?.role === "feat" ? "selected" : ""}>Feat.</option>
+          </select>
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    function startEditTrack(t) {
+      editingTrackId = t.id;
+      document.getElementById("trTitle").value = t.title || "";
+      document.getElementById("trAudio").value = t.audio_url || "";
+      document.getElementById("trArt").value = t.art_url || "";
+      document.getElementById("trDuration").value = t.duration_sec ?? "";
+      document.getElementById("trLyrics").value = t.lyrics_path || "";
+
+      const selectedMap = {};
+      (t.track_artists || []).forEach((ta) => {
+        if (ta.artists?.id) selectedMap[ta.artists.id] = { role: ta.role };
+      });
+      renderTrackArtistChecklist(selectedMap);
+
+      document.getElementById("trackFormTitle").textContent = "Sửa bài hát";
+      document.getElementById("trSaveBtn").textContent = "Cập nhật bài hát";
+      document.getElementById("trCancelBtn").hidden = false;
+      renderTrackList();
+    }
+
+    function resetTrackForm() {
+      editingTrackId = null;
+      document.getElementById("trackForm").reset();
+      renderTrackArtistChecklist();
+      document.getElementById("trackFormTitle").textContent = "Thêm bài hát mới";
+      document.getElementById("trSaveBtn").textContent = "Lưu bài hát";
+      document.getElementById("trCancelBtn").hidden = true;
+      renderTrackList();
+    }
+
+    document.getElementById("trCancelBtn").addEventListener("click", resetTrackForm);
+
+    document.getElementById("trackForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        title: document.getElementById("trTitle").value.trim(),
+        audio_url: document.getElementById("trAudio").value.trim(),
+        art_url: document.getElementById("trArt").value.trim() || null,
+        duration_sec: document.getElementById("trDuration").value
+          ? Number(document.getElementById("trDuration").value) : null,
+        lyrics_path: document.getElementById("trLyrics").value.trim() || null
+      };
+      if (editingTrackId) payload.id = editingTrackId;
+
+      const { data: savedTrack, error } = await supabaseClient
+        .from("tracks")
+        .upsert(payload)
+        .select()
+        .single();
+
+      if (error) { toast("Không lưu được: " + error.message, true); return; }
+
+      // Ghi lai danh sach nghe si tham gia: xoa het roi insert lai theo checklist.
+      const trackId = savedTrack.id;
+      const selected = [];
+      document.querySelectorAll("#trArtistChecklist input[type=checkbox]:checked").forEach((cb) => {
+        const artistId = cb.dataset.artistId;
+        const roleSel = document.querySelector(`select[data-role-for="${artistId}"]`);
+        selected.push({ track_id: trackId, artist_id: artistId, role: roleSel ? roleSel.value : "main" });
+      });
+
+      await supabaseClient.from("track_artists").delete().eq("track_id", trackId);
+      if (selected.length) {
+        const { error: taError } = await supabaseClient.from("track_artists").insert(selected);
+        if (taError) { toast("Lưu bài hát ok nhưng gán nghệ sĩ lỗi: " + taError.message, true); }
+      }
+
+      toast(editingTrackId ? "Đã cập nhật bài hát" : "Đã thêm bài hát");
+      resetTrackForm();
+      await loadTracks();
+    });
+
+    async function deleteTrack(id) {
+      if (!confirm("Xoá bài hát này? Bài hát sẽ bị gỡ khỏi mọi playlist.")) return;
+      const { error } = await supabaseClient.from("tracks").delete().eq("id", id);
+      if (error) { toast("Không xoá được: " + error.message, true); return; }
+      if (editingTrackId === id) resetTrackForm();
+      toast("Đã xoá bài hát");
+      await loadTracks();
+      await loadPlaylists();
+    }
+
+    // ================= PLAYLISTS =================
+
+    async function loadPlaylists() {
+      const { data, error } = await supabaseClient
+        .from("playlists")
+        .select("*, playlist_tracks(position, tracks(id, title))")
+        .order("sort_order");
+      if (error) { toast("Lỗi tải playlist: " + error.message, true); return; }
+      playlists = data || [];
+      renderPlaylistList();
+    }
+
+    function renderPlaylistList() {
+      const box = document.getElementById("playlistList");
+      box.innerHTML = "";
+      if (!playlists.length) {
+        box.innerHTML = '<div class="empty-note">Chưa có playlist nào.</div>';
+        return;
+      }
+      playlists.forEach((p) => {
+        const count = (p.playlist_tracks || []).length;
+        const row = document.createElement("div");
+        row.className = "row-item" + (p.id === editingPlaylistId ? " editing" : "");
+        row.innerHTML = `
+          <img class="row-thumb" src="${escapeAttr(p.cover_url || '')}" onerror="this.style.visibility='hidden'">
+          <div class="row-main">
+            <div class="row-title">${escapeHtml(p.title)}</div>
+            <div class="row-sub">${count} bài · /${escapeHtml(p.slug)}</div>
+          </div>
+          <button class="row-del" title="Xoá" data-id="${p.id}">✕</button>
+        `;
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".row-del")) return;
+          startEditPlaylist(p);
+        });
+        row.querySelector(".row-del").addEventListener("click", (e) => {
+          e.stopPropagation();
+          deletePlaylist(p.id);
+        });
+        box.appendChild(row);
+      });
+    }
+
+    function renderPlaylistTrackChecklist(selectedMap = {}) {
+      const box = document.getElementById("plTrackChecklist");
+      box.innerHTML = "";
+      if (!tracks.length) {
+        box.innerHTML = '<div class="empty-note">Chưa có bài hát nào — thêm ở tab Bài hát trước.</div>';
+        return;
+      }
+      tracks.forEach((t) => {
+        const checked = selectedMap[t.id];
+        const item = document.createElement("div");
+        item.className = "checklist-item";
+        item.innerHTML = `
+          <input type="checkbox" data-track-id="${t.id}" ${checked ? "checked" : ""}>
+          <label>${escapeHtml(t.title)}</label>
+          <input type="number" data-position-for="${t.id}" placeholder="TT" value="${checked?.position ?? ""}">
+        `;
+        box.appendChild(item);
+      });
+    }
+
+    function startEditPlaylist(p) {
+      editingPlaylistId = p.id;
+      document.getElementById("plTitle").value = p.title || "";
+      document.getElementById("plSlug").value = p.slug || "";
+      document.getElementById("plSort").value = p.sort_order ?? 0;
+      document.getElementById("plCover").value = p.cover_url || "";
+
+      const selectedMap = {};
+      (p.playlist_tracks || []).forEach((pt) => {
+        if (pt.tracks?.id) selectedMap[pt.tracks.id] = { position: pt.position };
+      });
+      renderPlaylistTrackChecklist(selectedMap);
+
+      document.getElementById("playlistFormTitle").textContent = "Sửa playlist";
+      document.getElementById("plSaveBtn").textContent = "Cập nhật playlist";
+      document.getElementById("plCancelBtn").hidden = false;
+      renderPlaylistList();
+    }
+
+    function resetPlaylistForm() {
+      editingPlaylistId = null;
+      document.getElementById("playlistForm").reset();
+      document.getElementById("plSort").value = 0;
+      renderPlaylistTrackChecklist();
+      document.getElementById("playlistFormTitle").textContent = "Thêm playlist mới";
+      document.getElementById("plSaveBtn").textContent = "Lưu playlist";
+      document.getElementById("plCancelBtn").hidden = true;
+      renderPlaylistList();
+    }
+
+    document.getElementById("plCancelBtn").addEventListener("click", resetPlaylistForm);
+
+    document.getElementById("playlistForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        title: document.getElementById("plTitle").value.trim(),
+        slug: document.getElementById("plSlug").value.trim(),
+        sort_order: Number(document.getElementById("plSort").value) || 0,
+        cover_url: document.getElementById("plCover").value.trim() || null
+      };
+      if (editingPlaylistId) payload.id = editingPlaylistId;
+
+      const { data: savedPlaylist, error } = await supabaseClient
+        .from("playlists")
+        .upsert(payload)
+        .select()
+        .single();
+
+      if (error) { toast("Không lưu được: " + error.message, true); return; }
+
+      const playlistId = savedPlaylist.id;
+      const selected = [];
+      document.querySelectorAll("#plTrackChecklist input[type=checkbox]:checked").forEach((cb) => {
+        const trackId = cb.dataset.trackId;
+        const posInput = document.querySelector(`input[data-position-for="${trackId}"]`);
+        selected.push({
+          playlist_id: playlistId,
+          track_id: trackId,
+          position: posInput && posInput.value ? Number(posInput.value) : 0
+        });
+      });
+
+      await supabaseClient.from("playlist_tracks").delete().eq("playlist_id", playlistId);
+      if (selected.length) {
+        const { error: ptError } = await supabaseClient.from("playlist_tracks").insert(selected);
+        if (ptError) { toast("Lưu playlist ok nhưng gán bài hát lỗi: " + ptError.message, true); }
+      }
+
+      toast(editingPlaylistId ? "Đã cập nhật playlist" : "Đã thêm playlist");
+      resetPlaylistForm();
+      await loadPlaylists();
+    });
+
+    async function deletePlaylist(id) {
+      if (!confirm("Xoá playlist này?")) return;
+      const { error } = await supabaseClient.from("playlists").delete().eq("id", id);
+      if (error) { toast("Không xoá được: " + error.message, true); return; }
+      if (editingPlaylistId === id) resetPlaylistForm();
+      toast("Đã xoá playlist");
+      await loadPlaylists();
+    }
+
+    // ================= ADMINS =================
+
+    async function loadAdmins() {
+      const { data, error } = await supabaseClient.from("admins").select("email").order("email");
+      const box = document.getElementById("adminList");
+      box.innerHTML = "";
+      if (error) {
+        box.innerHTML = `<div class="empty-note">Không tải được danh sách: ${escapeHtml(error.message)}</div>`;
+        return;
+      }
+      if (!data.length) {
+        box.innerHTML = '<div class="empty-note">Chưa có admin nào.</div>';
+        return;
+      }
+      data.forEach((row) => {
+        const item = document.createElement("div");
+        item.className = "row-item";
+        item.innerHTML = `
+          <div class="row-main"><div class="row-title">${escapeHtml(row.email)}</div></div>
+          <button class="row-del" title="Gỡ quyền admin">✕</button>
+        `;
+        item.querySelector(".row-del").addEventListener("click", () => removeAdmin(row.email));
+        box.appendChild(item);
+      });
+    }
+
+    document.getElementById("adminForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const raw = document.getElementById("adEmails").value;
+      const emails = [...new Set(
+        raw.split("\n").map((s) => s.trim().toLowerCase()).filter(Boolean)
+      )];
+      if (!emails.length) return;
+
+      const { error } = await supabaseClient
+        .from("admins")
+        .upsert(emails.map((email) => ({ email })), { onConflict: "email" });
+
+      if (error) { toast("Không thêm được: " + error.message, true); return; }
+      toast(`Đã thêm ${emails.length} admin`);
+      document.getElementById("adminForm").reset();
+      await loadAdmins();
+    });
+
+    async function removeAdmin(email) {
+      if (email === session.user.email) {
+        if (!confirm("Đây là tài khoản bạn đang dùng. Gỡ quyền admin của chính mình?")) return;
+      } else if (!confirm(`Gỡ quyền admin của ${email}?`)) {
+        return;
+      }
+      const { error } = await supabaseClient.from("admins").delete().eq("email", email);
+      if (error) { toast("Không gỡ được: " + error.message, true); return; }
+      toast("Đã gỡ quyền admin");
+      await loadAdmins();
+      if (email === session.user.email) window.location.replace("/discover");
+    }
+
+    // ---------- Utils ----------
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[c]));
+    }
+    function escapeAttr(str) { return escapeHtml(str); }
+  </script>
+</body>
+
+</html>
