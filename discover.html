@@ -16,6 +16,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CloudLM">
 
+  <!-- Chan hien noi dung cho toi khi auth gate xac nhan co session.
+       Bo lop nay bang cach them class "auth-ok" vao <html>. -->
+  <style>html:not(.auth-ok) body { visibility: hidden }</style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module">
+    import { requireSession } from "/auth.js";
+    // Chua dang nhap -> requireSession tu redirect ve trang login va tra ve null.
+    const session = await requireSession();
+    if (session) document.documentElement.classList.add("auth-ok");
+  </script>
+
   <!-- Nen WebGL (Neat) tai tu unpkg, nhac stream tu Cloudinary.
        Bat tay TLS truoc de bot do tre khi mo fullscreen / phat bai dau tien. -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin>

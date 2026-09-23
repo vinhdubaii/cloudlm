@@ -184,12 +184,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://pxpijosyqijtsvfvrnbx.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_i1prms5Yn6XQy2cwYI9P4Q_H-xhK_dt";
-    const DISCOVER_PATH = "/discover";
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <script type="module">
+    import { supabaseClient, signInWithGoogle, DISCOVER_PATH } from "/auth.js";
 
     const googleBtn = document.getElementById("googleBtn");
     const statusEl = document.getElementById("loginStatus");
@@ -211,12 +207,7 @@
       googleBtn.disabled = true;
       setStatus("Đang chuyển tới Google…");
 
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin + DISCOVER_PATH
-        }
-      });
+      const { error } = await signInWithGoogle();
 
       if (error) {
         setStatus("Đăng nhập thất bại: " + error.message, true);
