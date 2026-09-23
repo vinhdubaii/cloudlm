@@ -21,7 +21,7 @@
   <style>html:not(.auth-ok) body { visibility: hidden }</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script type="module">
-    import { requireSession } from "/auth.js";
+    import { requireSession } from "/js/auth.js";
     // Chua dang nhap -> requireSession tu redirect ve trang login va tra ve null.
     const session = await requireSession();
     if (session) document.documentElement.classList.add("auth-ok");
